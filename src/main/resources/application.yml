@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:33068/loginDemo?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+  thymeleaf:
+    cache: false
+mybatis:
+  mapper-locations: classpath:io/chenylnti/logindemo/mapper/*.xml
+  type-aliases-package: io.chenylnti.logindemo.pojo

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.chenylnti.logindemo.mapper.AdminLoginMapper">
+    <resultMap id="BaseResultMap" type="io.chenylnti.logindemo.pojo.Admin">
+        <id column="id" property="id" javaType="INTEGER"/>
+        <result column="admin_account" property="admin_account" jdbcType="VARCHAR"/>
+        <result column="admin_password" property="admin_password" jdbcType="VARCHAR"/>
+        <result column="profile" property="profile" jdbcType="BINARY"/>
+        <result column="acount_expired" property="isAccountNonExpired" jdbcType="BINARY"/>
+        <result column="acount_locked" property="isAccountNonLocked" jdbcType="BINARY"/>
+        <result column="credentials_expired" property="isCredentialsNonExpired" jdbcType="BINARY"/>
+        <result column="enabled" property="isEnabled" jdbcType="BINARY"/>
+    </resultMap>
+    <resultMap id="AdminWithRoles" type="io.chenylnti.logindemo.pojo.Admin" extends="BaseResultMap">
+        <collection property="roles" ofType="io.chenylnti.logindemo.pojo.Role">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="nameZh" property="nameZh"/>
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id,admin_account,admin_password,profile,acount_expired,acount_locked,credentials_expired,enabled
+    </sql>
+    <select id="adminLogin" parameterType="String" resultMap="BaseResultMap">
+        select * from duser where admin_account=#{admin_account}
+    </select>
+    <select id="getAdminByIdOrderById" resultMap="AdminWithRoles">
+        SELECT
+            duser.id,
+            duser.admin_account,
+            duser.`profile`,
+            role.id AS rid,
+            role.`name` AS rname,
+            role.nameZh AS rnameZh,
+            duser.enabled
+        FROM
+            ( duser_role )
+                LEFT JOIN (duser, role) ON duser.id = duser_role.duser_id and duser_role.role_id = role.id
+        WHERE
+            duser.id != #{id}
+        ORDER BY
+            duser.id
+    </select>
+    <select id="getAdminRoleById" resultType="io.chenylnti.logindemo.pojo.Role">
+        SELECT role.* FROM (role,duser_role) WHERE duser_role.role_id=role.id AND duser_role.duser_id=#{id}
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+            <include refid="Base_Column_List"/>
+        from duser
+        where id=#{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        DELETE from duser where id=#{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="io.chenylnti.logindemo.pojo.Admin" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            duser (admin_account,admin_password)
+        VALUES
+        (#{admin_account,jdbcType=VARCHAR},#{admin_password,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="afterInsert">
+        INSERT INTO
+            duser_role (duser_id,role_id)
+        VALUES
+            (#{d_id},#{r_id})
+    </insert>
+    <insert id="insertSelective" parameterType="io.chenylnti.logindemo.pojo.Admin" useGeneratedKeys="true" keyProperty="id">
+        insert into duser
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="admin_account != null">
+                admin_account,
+            </if>
+            <if test="admin_password != null">
+                admin_password,
+            </if>
+            <if test="isEnabled != null">
+                enabled,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
+            <if test="admin_account != null">
+                #{admin_account},
+            </if>
+            <if test="admin_password != null">
+                #{admin_password},
+            </if>
+            <if test="isEnabled != null">
+                #{enabled},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="io.chenylnti.logindemo.pojo.Admin">
+        update duser
+        <set>
+            <if test="admin_account != null">
+                admin_account= #{admin_account},
+            </if>
+            <if test="admin_password != null">
+                admin_password= #{admin_password},
+            </if>
+            <if test="isEnabled != null">
+                enabled= #{enabled},
+            </if>
+        </set>
+        where id=#{id,jdbcType=INTEGER}
+    </update>
+</mapper>
